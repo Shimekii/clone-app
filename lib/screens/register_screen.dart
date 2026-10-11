@@ -1,3 +1,4 @@
+import 'package:evgo_clone/screens/verify_mail.dart';
 import 'package:flutter/material.dart';
 
 enum AuthState {
@@ -20,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String selectedLanguage = 'Русский';
   AuthState state = AuthState.enterEmail;
   String validMail = "example@example.com";
+  String email = "";
   String? emailError;
 
   String get title {
@@ -181,7 +183,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: DecoratedBox(
                                 decoration: btnStyle(),
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                      Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => VerifyMailScreen(email: email))
+                                    );
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
                                     foregroundColor: Colors.white,
@@ -461,6 +468,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           
                           // поле ввода
                           TextField(
+                            cursorColor: Colors.black,
                             controller: textController,
                             obscureText: obscurePassword,
                             decoration: InputDecoration(
@@ -531,7 +539,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   switch(state){
                                     case AuthState.enterEmail:
-                                      String email = textController.text;
+                                      email = textController.text;
                                       setState(() {
                                       emailError = null;
                                       textController.clear();
@@ -621,23 +629,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     // кнопка пропустить
                     buildAction()
-                    /*SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Действие при нажатии кнопки "Пропустить"
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          side: const BorderSide(
-                            color: Color(0xFF0094DA),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Text("Пропустить >>"),
-                      ),
-                    ),*/
                   ],
                 ),
               ),
