@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'dart:async';
+
+import 'form.dart';
 
 class VerifyMailScreen extends StatefulWidget {
   final String email;
 
-  const VerifyMailScreen({
-    super.key,
-    required this.email,
-  });
+  const VerifyMailScreen({super.key, required this.email});
 
   @override
   State<VerifyMailScreen> createState() => _VerifyMailScreen();
@@ -17,12 +17,14 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
   int secondsLeft = 30;
   Timer? timer;
   bool timerActive = false;
+  bool showInvalidCode = false;
 
-  final List<TextEditingController> controllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> controllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
 
-  final List<FocusNode> focusNodes =
-      List.generate(4, (_) => FocusNode());
+  final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
 
   void startTimer() {
     setState(() {
@@ -46,7 +48,6 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
     });
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -69,7 +70,7 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
   @override
   Widget build(BuildContext context) {
     final email = widget.email;
-
+    int validCode = 1111;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -85,11 +86,15 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                     },
                     icon: const Icon(Icons.close, size: 24),
                   ),
-                  const Text(
-                    "Подтверждение почты",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  const Expanded(
+                    child: Text(
+                      "Подтверждение почты",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -100,8 +105,8 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                   children: [
                     Image.asset(
                       'assets/images/mail.jpg',
-                      width: 200,
-                      height: 200,
+                      width: 150,
+                      height: 150,
                     ),
                     Text(
                       'Мы отправили код подтверждения на адрес $email. '
@@ -119,9 +124,7 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                         return Container(
                           width: 50,
                           height: 60,
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                          ),
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
                           child: TextField(
                             style: TextStyle(fontSize: 24),
                             cursorColor: Colors.black,
@@ -133,33 +136,82 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                             decoration: const InputDecoration(
                               counterText: "",
                               enabledBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                   color: Colors.black
-                                  )
-                                ),
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
 
                               focusedBorder: UnderlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: Colors.black
-                                )
-                              )
+                                borderSide: BorderSide(color: Colors.black),
+                              ),
                             ),
                             onChanged: (value) {
+                              if (showInvalidCode) {
+                                setState(() => showInvalidCode = false);
+                              }
                               if (value.isNotEmpty) {
                                 if (index < controllers.length - 1) {
                                   focusNodes[index + 1].requestFocus();
                                 } else {
                                   focusNodes[index].unfocus();
+                                  final enteredCode = controllers
+                                      .map((controller) => controller.text)
+                                      .join();
+                                  if (enteredCode == validCode.toString()) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            FormScreen(email: email),
+                                      ),
+                                    );
+                                  } else {
+                                    setState(() => showInvalidCode = true);
+                                  }
                                 }
                               } else if (index > 0) {
                                 focusNodes[index - 1].requestFocus();
                               }
                             },
-                            
                           ),
                         );
                       }),
                     ),
+
+                    if (showInvalidCode) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        key: const ValueKey('invalid-code-banner'),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFED2D1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'Неверный код. Проверьте и попробуйте еще раз',
+                                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     SizedBox(height: 16),
 
@@ -170,24 +222,26 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: timerActive
-                            ? const LinearGradient(colors: [Colors.grey, Colors.grey])
-                            : const LinearGradient(
-                              colors: [
-                                Color(0xFF0093D9),
-                                Color(0xFF77B82A),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
+                              ? const LinearGradient(
+                                  colors: [Colors.grey, Colors.grey],
+                                )
+                              : const LinearGradient(
+                                  colors: [
+                                    Color(0xFF0093D9),
+                                    Color(0xFF77B82A),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
                           borderRadius: BorderRadius.circular(25.0),
                         ),
                         child: ElevatedButton(
                           onPressed: timerActive
-                            ? null
-                            : () {
-                              startTimer();
-                              // повторная отправка кода
-                            },
+                              ? null
+                              : () {
+                                  startTimer();
+                                  // повторная отправка кода
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             foregroundColor: Colors.white,
@@ -198,10 +252,10 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                           ),
                           child: Text(
                             timerActive
-                              ? 'Отправить повторно через $secondsLeft сек.'
-                              : 'Отправить код повторно',
+                                ? 'Отправить повторно через $secondsLeft сек.'
+                                : 'Отправить код повторно',
 
-                            style: TextStyle(color: Colors.white)
+                            style: TextStyle(color: Colors.white),
                           ),
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:evgo_clone/screens/verify_mail.dart';
+import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
 
 enum AuthState {
@@ -18,6 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool obscurePassword = false;
   bool _isPressed = false;
   bool _privacyAccepted = false;
+  bool _privacyError = false;
   String selectedLanguage = 'Русский';
   AuthState state = AuthState.enterEmail;
   String validMail = "example@example.com";
@@ -56,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  SizedBox btnBackText(String text, VoidCallback onPressed, Icon? icon){
+  SizedBox btnBackText(String text, VoidCallback onPressed, Icon? icon) {
     return SizedBox(
       width: double.infinity,
       child: Center(
@@ -70,10 +72,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...{
+              if (icon != null) ...[
                 icon,
                 const SizedBox(width: 4),
-              },
+              ],
               Text(
                 text,
                 style: TextStyle(
@@ -85,10 +87,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ],
           ),
-        )
-      )
+        ),
+      ),
     );
-  }  
+  }
 
   final TextEditingController textController = TextEditingController();
 
@@ -102,8 +104,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 1,
-          minChildSize: 0.9,
+          initialChildSize: 0.5,
+          minChildSize: 0.5,
           maxChildSize: 1,
           builder: (context, scrollController) {
             return StatefulBuilder(
@@ -125,83 +127,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       Expanded(
-                        child: ListView(
+                        child: SingleChildScrollView(
                           controller: scrollController,
                           padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                          children: [
-                            Text(
-                              'Политика конфиденциальности',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Текст политики конфиденциальности будет '
-                              'размещен здесь. В нем будут описаны '
-                              'собираемые данные, цели и сроки обработки, '
-                              'а также способы связи по вопросам '
-                              'конфиденциальности.',
-                            ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: TextButton(
-                                onPressed: () {},
-                                child: const Text(
-                                  'Политика конфиденциальности',
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Политика конфиденциальности',
+                                style: Theme.of(context).textTheme.headlineSmall,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CheckboxListTile(
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              value: _privacyAccepted,
-                              onChanged: (value) {
-                                setModalState(() {
-                                  _privacyAccepted = value ?? false;
-                                });
-                              },
-                              title: const Text(
-                                'Я прочитал и согласен с политикой '
-                                'конфиденциальности',
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 40,
-                              child: DecoratedBox(
-                                decoration: btnStyle(),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                      Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => VerifyMailScreen(email: email))
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    shadowColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(25),
+                              const SizedBox(height: 16),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton(
+                                  onPressed: () {},
+                                  child: const Text(
+                                    'Условия использования и политика конфиденциальности',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.underline,
                                     ),
                                   ),
-                                  child: const Text('Продолжить'),
                                 ),
                               ),
-                            ),
-                          ],
+                              CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                value: _privacyAccepted,
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    _privacyAccepted = value ?? false;
+                                    if (_privacyAccepted) _privacyError = false;
+                                  });
+                                },
+                                title: const Text(
+                                  'Я ознакомился с Условиями предоставления услуг и '
+                                  'Политикой конфиденциальности с согласен с ними',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ),
+                              if (_privacyError)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 56, bottom: 8),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Обязательное поле',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 40,
+                                child: DecoratedBox(
+                                  decoration: btnStyle(),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      if (!_privacyAccepted) {
+                                        setModalState(() => _privacyError = true);
+                                        return;
+                                      }
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              VerifyMailScreen(email: email),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(25),
+                                      ),
+                                    ),
+                                    child: const Text('Продолжить'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -224,8 +233,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.4,
-          minChildSize: 0.25,
+          initialChildSize: 0.5,
+          minChildSize: 0.5,
           maxChildSize: 1,
           builder: (context, scrollController) {
             return SafeArea(
@@ -447,9 +456,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     },
-                    
+
                     const Spacer(),
-                    
+
                     // заголовок/текст
                     Center(
                       child: Column(
@@ -465,7 +474,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // поле ввода
                           TextField(
                             cursorColor: Colors.black,
@@ -479,30 +488,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 horizontal: 16,
                                 vertical: 0,
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFDEEACC),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFDEEACC),
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
-                                ),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                borderSide: const BorderSide(
-                                  color: Colors.red,
-                                ),
-                              ),
+                              enabledBorder: getInputBorder(Color(0xFFDEEACC)),
+                              focusedBorder: getInputBorder(Color(0xFFDEEACC)),
+                              errorBorder: getInputBorder(Colors.red),
+                              focusedErrorBorder: getInputBorder(Colors.red),
                               suffixIcon: state != AuthState.enterEmail
                                   ? IconButton(
                                       icon: Icon(
@@ -519,7 +508,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   : null,
                             ),
                           ),
-                          
+
                           const SizedBox(height: 8),
 
                           // кнопка продолжения
@@ -585,7 +574,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ],
                       ),
                     ),
-                    
+
                     if (state == AuthState.login) ...{
                       btnBackText("Забыли пароль?", () {
                         showDialog(
@@ -607,7 +596,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },null // иконка
                       )
                     },
-                    
+
                     if (state == AuthState.register) ...{
                       btnBackText("Вернуться назад", () {
                         setState(() {
