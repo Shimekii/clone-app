@@ -1,3 +1,4 @@
+// import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/register_screen.dart';
 

@@ -1,3 +1,4 @@
+import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:evgo_clone/screens/verify_mail.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
@@ -333,6 +334,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: ElevatedButton(
             onPressed: () {
               // Действие при нажатии кнопки "Пропустить"
+              Navigator.pushReplacement(
+                context, 
+                MaterialPageRoute(builder: (
+                  (context) => MapScreen()
+                  ),
+                )
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
