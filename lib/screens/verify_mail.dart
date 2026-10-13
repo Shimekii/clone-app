@@ -1,3 +1,4 @@
+import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:async';
@@ -83,6 +84,10 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                   IconButton(
                     onPressed: () {
                       // Добавить логику
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => MapScreen())
+                      );
                     },
                     icon: const Icon(Icons.close, size: 24),
                   ),
@@ -269,6 +274,10 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           // Действие при нажатии кнопки "Пропустить"
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(builder: (context) => FormScreen(email: email))
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,

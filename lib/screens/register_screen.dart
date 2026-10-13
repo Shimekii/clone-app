@@ -1,5 +1,6 @@
 import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:evgo_clone/screens/verify_mail.dart';
+import 'package:evgo_clone/services/user_service.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
 
@@ -17,8 +18,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  UserService userService = UserService();
   bool obscurePassword = false;
-  bool _isPressed = false;
+  final bool _isPressed = false;
   bool _privacyAccepted = false;
   bool _privacyError = false;
   String selectedLanguage = 'Русский';
@@ -538,21 +540,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     case AuthState.enterEmail:
                                       email = textController.text;
                                       setState(() {
-                                      emailError = null;
-                                      textController.clear();
-                                      obscurePassword = true;
-                                      state = email == validMail
-                                        ? AuthState.login
-                                        : AuthState.register;
-                                    });
-                                    case AuthState.login:
-                                      setState(() {
                                         emailError = null;
+                                        textController.clear();
+                                        obscurePassword = true;
+                                        state = userService.emailIsContains(email)
+                                          ? AuthState.login
+                                          : AuthState.register;
                                       });
+                                    case AuthState.login:
                                       // ДОБАВИТЬ ЛОГИКУ
                                       // ДОБАВИТЬ ЛОГИКУ
                                       // ДОБАВИТЬ ЛОГИКУ
                                       // ДОБАВИТЬ ЛОГИКУ
+                                      String pwd = textController.text;
+                                      if (userService.passwordIsValid(email, pwd)){
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MapScreen()
+                                          )
+                                        );
+                                      }
+                                      else {
+                                        setState(() {
+                                          emailError = "Неверный пароль";
+                                        });
+                                      }
                                       break;
                                     case AuthState.register:
                                       setState(() {

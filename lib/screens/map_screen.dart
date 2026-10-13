@@ -1,3 +1,5 @@
+import 'package:evgo_clone/services/station_service.dart';
+import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -14,16 +16,186 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   static const LatLng defaultPosition = LatLng(56.4761, 84.9657);
+  final StationService _stationService = StationService();
   bool _mapReady = false;
   bool _locating = false;
   bool _initializingMap = true;
-
+  final TextEditingController _searchController = TextEditingController();
   LatLng? _userPosition;
+
+  Future<void> _searchStations() async {
+    final stations = _stationService.getStations();
+
+    await showModalBottomSheet<void>(
+      backgroundColor: Colors.white,
+      context: context,
+      useRootNavigator: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 1,
+          minChildSize: 1,
+          maxChildSize: 1,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return SafeArea(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 32),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: const Icon(Icons.close, size: 24),
+                            ),
+                            const Expanded(
+                              child: Text(
+                                "Поиск",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: 8),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (_) => setModalState(() {}),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: const Color(0xFFF3F7E9),
+                            focusedBorder: getInputBorder(
+                              const Color(0xFFDEEACC),
+                            ),
+                            enabledBorder: getInputBorder(
+                              const Color(0xFFDEEACC),
+                            ),
+                            focusedErrorBorder: getInputBorder(Colors.red),
+                            errorBorder: getInputBorder(Colors.red),
+                            suffixIcon: const Icon(Icons.search, size: 32),
+                            hintText: 'Поиск...',
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Ближайшие места зарядки', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      Expanded(
+                        child: Builder(
+                          builder: (context) {
+                            final query = _searchController.text
+                                .trim()
+                                .toLowerCase();
+                            final filteredStations = stations
+                                .where(
+                                  (station) => station.name
+                                      .toLowerCase()
+                                      .contains(query),
+                                )
+                                .toList();
+
+                            if (filteredStations.isEmpty) {
+                              return const Center(
+                                child: Text('Станции не найдены'),
+                              );
+                            }
+
+                            return ListView.separated(
+                              controller: scrollController,
+                              itemCount: filteredStations.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final station = filteredStations[index];
+                                final availableConnectors = _stationService
+                                    .getAvailableConnectorCount(station);
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: ListTile(
+                                    tileColor: const Color(0xFFF3F7E9),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5.0),
+                                    ),
+                                    leading: const Icon(
+                                      Icons.bolt_outlined,
+                                      size: 36,
+                                    ),
+                                    title: Text(station.name, style: TextStyle(color: Colors.black)),
+                                    subtitle: Text(
+                                      '$availableConnectors/${station.connectors.length} доступно',
+                                    ),
+                                    trailing: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.route, size: 30, color: Colors.black),
+                                        Text(_distanceLabel(station), style: TextStyle(fontSize: 14, color: Colors.black)),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      _buildBottomActionBar(),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _distanceLabel(Station station) {
+    final currentPosition = _userPosition;
+    if (currentPosition == null) return '—';
+
+    final distanceInMeters = _stationService.getDistanceInMeters(
+      currentPosition,
+      station,
+    );
+    if (distanceInMeters < 1000) {
+      return '~${distanceInMeters.round()} м';
+    }
+
+    return '~${(distanceInMeters / 1000).toStringAsFixed(1)} км';
+  }
 
   @override
   void initState() {
     super.initState();
     _initializeMap();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,9 +248,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                     const RichAttributionWidget(
                       attributions: [
-                        TextSourceAttribution(
-                          '© OpenStreetMap contributors',
-                        ),
+                        TextSourceAttribution('© OpenStreetMap contributors'),
                       ],
                     ),
                   ],
@@ -96,16 +266,29 @@ class _MapScreenState extends State<MapScreen> {
                           _buildMapButton(
                             icon: Icons.menu_outlined,
                             tooltip: 'Меню',
+                            func: () {
+                              // ДОБАВИТЬ ЛОГИКУ
+                              // ДОБАВИТЬ ЛОГИКУ
+                              // ДОБАВИТЬ ЛОГИКУ
+                            },
                           ),
                           const Spacer(),
                           _buildMapButton(
                             icon: Icons.search,
                             tooltip: 'Поиск',
+                            func: () {
+                              _searchStations();
+                            },
                           ),
                           const SizedBox(width: 10),
                           _buildMapButton(
                             icon: Icons.filter_list_alt,
                             tooltip: 'Фильтр',
+                            func: () {
+                              // ДОБАВИТЬ ЛОГИКУ
+                              // ДОБАВИТЬ ЛОГИКУ
+                              // ДОБАВИТЬ ЛОГИКУ
+                            },
                           ),
                         ],
                       ),
@@ -116,41 +299,7 @@ class _MapScreenState extends State<MapScreen> {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: SafeArea(
-                    top: false,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3F7E9),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey,
-                            blurRadius: 12,
-                            offset: Offset(0, -3),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      child: Row(
-                        children: [
-                          _buildBottomAction(
-                            icon: Icons.add_location_alt_outlined,
-                            label: 'Найти заправку',
-                          ),
-                          _buildBottomAction(
-                            icon: Icons.qr_code_scanner,
-                            label: 'Сканировать QR',
-                          ),
-                          _buildBottomAction(
-                            icon: Icons.info_outline,
-                            label: 'Помощь',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: SafeArea(top: false, child: _buildBottomActionBar()),
                 ),
                 Positioned(
                   right: 16,
@@ -158,16 +307,17 @@ class _MapScreenState extends State<MapScreen> {
                   width: 50,
                   height: 50,
                   child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.zero,
-                    ),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.zero),
                     child: FloatingActionButton(
                       backgroundColor: Color(0xFFECFCF2),
                       onPressed: _locateUser,
                       tooltip: 'Моё местоположение',
-                      child: const Icon(Icons.my_location, color: Color(0xFF666666)),
+                      child: const Icon(
+                        Icons.my_location,
+                        color: Color(0xFF666666),
+                      ),
                     ),
-                  )
+                  ),
                 ),
               ],
             ),
@@ -177,23 +327,21 @@ class _MapScreenState extends State<MapScreen> {
   Widget _buildMapButton({
     required IconData icon,
     required String tooltip,
+    required VoidCallback func,
   }) {
     return Material(
       color: Color(0xFF1A2D3E),
       elevation: 3,
       shape: const CircleBorder(),
       child: IconButton(
-        onPressed: () {},
+        onPressed: func,
         tooltip: tooltip,
         icon: Icon(icon, color: Colors.white, size: 32),
       ),
     );
   }
 
-  Widget _buildBottomAction({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _buildBottomAction({required IconData icon, required String label}) {
     return Expanded(
       child: InkWell(
         onTap: () {},
@@ -221,6 +369,28 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Widget _buildBottomActionBar() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF3F7E9)
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        children: [
+          _buildBottomAction(
+            icon: Icons.add_location_alt_outlined,
+            label: 'Найти заправку',
+          ),
+          _buildBottomAction(
+            icon: Icons.qr_code_scanner,
+            label: 'Сканировать QR',
+          ),
+          _buildBottomAction(icon: Icons.info_outline, label: 'Помощь'),
+        ],
+      ),
+    );
+  }
+
   Future<void> _initializeMap() async {
     try {
       final hasLocationPermission = await _requestPermissions();
@@ -234,10 +404,7 @@ class _MapScreenState extends State<MapScreen> {
             accuracy: LocationAccuracy.high,
           ),
         );
-        _userPosition = LatLng(
-          position.latitude,
-          position.longitude,
-        );
+        _userPosition = LatLng(position.latitude, position.longitude);
       }
     } catch (e) {
       _showMessage('Не удалось определить местоположение');
@@ -279,8 +446,7 @@ class _MapScreenState extends State<MapScreen> {
         return;
       }
 
-      final serviceEnabled =
-          await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
         _showMessage('Включи геолокацию на устройстве');
@@ -295,10 +461,7 @@ class _MapScreenState extends State<MapScreen> {
 
       if (!mounted) return;
 
-      final point = LatLng(
-        position.latitude,
-        position.longitude,
-      );
+      final point = LatLng(position.latitude, position.longitude);
 
       setState(() {
         _userPosition = point;
@@ -315,8 +478,7 @@ class _MapScreenState extends State<MapScreen> {
   void _showMessage(String message) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
