@@ -1,4 +1,6 @@
 import 'package:evgo_clone/services/station_service.dart';
+import 'package:evgo_clone/styles/charging_marker.dart';
+import 'package:evgo_clone/styles/connector_icon.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -95,7 +97,10 @@ class _MapScreenState extends State<MapScreen> {
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('Ближайшие места зарядки', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text(
+                            'Ближайшие места зарядки',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -134,6 +139,11 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                   child: ListTile(
                                     tileColor: const Color(0xFFF3F7E9),
+                                    onTap: () {
+                                      Navigator.of(context).pop();
+                                      _searchController.clear();
+                                      _mapController.move(station.position, 16);
+                                    },
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(5.0),
                                     ),
@@ -141,15 +151,28 @@ class _MapScreenState extends State<MapScreen> {
                                       Icons.bolt_outlined,
                                       size: 36,
                                     ),
-                                    title: Text(station.name, style: TextStyle(color: Colors.black)),
+                                    title: Text(
+                                      station.name,
+                                      style: TextStyle(color: Colors.black),
+                                    ),
                                     subtitle: Text(
                                       '$availableConnectors/${station.connectors.length} доступно',
                                     ),
                                     trailing: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.route, size: 30, color: Colors.black),
-                                        Text(_distanceLabel(station), style: TextStyle(fontSize: 14, color: Colors.black)),
+                                        const Icon(
+                                          Icons.route,
+                                          size: 30,
+                                          color: Colors.black,
+                                        ),
+                                        Text(
+                                          _distanceLabel(station),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -186,6 +209,226 @@ class _MapScreenState extends State<MapScreen> {
     return '~${(distanceInMeters / 1000).toStringAsFixed(1)} км';
   }
 
+  void _showStationDetails({
+    required String name,
+    required List<Connector> connectors,
+    required String distance,
+  }) {
+    var connectorsType = _stationService.getConnectorsType(name);
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          minChildSize: 0.35,
+          maxChildSize: 1,
+          initialChildSize: 0.35,
+          expand: false,
+
+          builder: (context, scrollableController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    controller: scrollableController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: Container(
+                              width: 130,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 12),
+
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+
+                        SizedBox(height: 12),
+
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFF3F7E9),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 6,
+                                  ),
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFFDDEBC8),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      child: Row(
+                                        spacing: 8,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          for (var connector in connectorsType) ...{
+                                            Column(
+                                              children: [
+                                                ConnectorIcon(
+                                                  type: connector,
+                                                  size: 40,
+                                                ),
+                                                Text(
+                                                  connector.name,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          },
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 6),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.route_outlined,
+                                        color: Colors.green,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(distance),
+                                      Spacer(),
+                                      TextButton.icon(
+                                        onPressed: () {},
+                                        label: Text(
+                                          "Проложить путь",
+                                          style: TextStyle(color: Colors.blue),
+                                        ),
+                                        icon: Icon(
+                                          Icons.arrow_forward_ios_outlined,
+                                          color: Colors.blue,
+                                        ),
+                                        iconAlignment: IconAlignment.end,
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 40,
+                                  child: DecoratedBox(
+                                    decoration: btnStyle(),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {},
+                                      label: Text(
+                                        "Просканировать",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      icon: Icon(
+                                        Icons.qr_code,
+                                        color: Colors.white,
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        shadowColor: Colors.transparent,
+                                        minimumSize: const Size(
+                                          double.infinity,
+                                          40,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            25.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(width: 6),
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.star_border_rounded, size: 40),
+                                style: IconButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: 10),
+
+                        // карточки коннекторов
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            children: [
+                              for (var connector in connectors) ... {
+                                _buildCardConnector(connector),
+                                SizedBox(height: 8)
+                              }
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -200,6 +443,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var stations = _stationService.getStations();
     return Scaffold(
       body: _initializingMap
           ? const ColoredBox(color: Colors.white)
@@ -220,9 +464,9 @@ class _MapScreenState extends State<MapScreen> {
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.evgo_clone',
                     ),
-                    if (_userPosition != null)
-                      MarkerLayer(
-                        markers: [
+                    MarkerLayer(
+                      markers: [
+                        if (_userPosition != null)
                           Marker(
                             point: _userPosition!,
                             width: 24,
@@ -244,8 +488,25 @@ class _MapScreenState extends State<MapScreen> {
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        for (final station in stations)
+                          Marker(
+                            point: station.position,
+                            width: ChargingMarker.markerWidth,
+                            height: ChargingMarker.markerHeight,
+                            alignment: Alignment.bottomCenter,
+                            child: ChargingMarker(
+                              availableSlots: _stationService
+                                  .getAvailableConnectorCount(station),
+                              totalSlots: station.connectors.length,
+                              onTap: () => _showStationDetails(
+                                name: station.name,
+                                connectors: station.connectors,
+                                distance: _distanceLabel(station),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                     const RichAttributionWidget(
                       attributions: [
                         TextSourceAttribution('© OpenStreetMap contributors'),
@@ -371,9 +632,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _buildBottomActionBar() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F7E9)
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF3F7E9)),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
         children: [
@@ -480,5 +739,99 @@ class _MapScreenState extends State<MapScreen> {
 
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  DecoratedBox _buildCardConnector(Connector connector){
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Color(0xFFF3F7E9),
+        borderRadius: BorderRadius.circular(5.0)
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Column(
+          spacing: 12,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Заголовок
+            Text(connector.number.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+
+            // иконка с текстом
+            Row(
+              spacing: 8,
+              children: [
+                ConnectorIcon(type: connector.type),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(connector.type.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Row(
+                      children: [
+                        Icon(Icons.ev_station_outlined, size: 14),
+                        Text("Pre-cabled", style: TextStyle(fontSize: 14))
+                      ],
+                    )
+                  ],
+                )
+              ],
+            ),
+
+            // индикатор
+            Row(
+              children: [
+                if (connector.status == ConnectorStatus.avaliable)...{
+                  Icon(Icons.check_circle, color: Colors.green),
+                  SizedBox(width: 8),
+                  Text("Доступно", style: TextStyle(color: Colors.green, fontSize: 16,)),
+                } else ...{
+                  Icon(Icons.cancel, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text("Занято", style: TextStyle(color: Colors.red, fontSize: 16)),
+                },
+                Spacer(),
+                TextButton(
+                  onPressed: () {
+                    // ДОБАВИТЬ ЛОГИКУ
+                    // ДОБАВИТЬ ЛОГИКУ
+                    // ДОБАВИТЬ ЛОГИКУ
+                    // ДОБАВИТЬ ЛОГИКУ
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Free", style: TextStyle(fontSize: 16, color: Colors.black)),
+                      Icon(Icons.chevron_right_outlined, color: Colors.black, size: 26),
+                    ],
+                  )
+                )
+              ],
+            ),
+
+            if (connector.status == ConnectorStatus.occupied)...{
+              Text(_renderLabel(connector.useTime), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
+            }
+          ],
+        ),
+      )
+    );
+  }
+
+  String _renderLabel(int seconds){
+    int hour = seconds ~/ 3600;
+    int minutes = (seconds % 3600) ~/ 60;
+    int sec = seconds % 60;
+    if (hour != 0){
+      return "Запущено $hour ч. $minutes мин. $sec сек. назад";
+    }
+    else if (minutes != 0){
+      return "Запущено $minutes мин. $sec сек. назад";
+    }
+    else {
+      return "Запущено $sec сек. назад";
+    }
   }
 }
