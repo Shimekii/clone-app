@@ -1,5 +1,6 @@
 import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:async';
 
@@ -148,7 +149,7 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                                 borderSide: BorderSide(color: Colors.black),
                               ),
                             ),
-                            onChanged: (value) {
+                            onChanged: (value) async {
                               if (showInvalidCode) {
                                 setState(() => showInvalidCode = false);
                               }
@@ -161,6 +162,10 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                                       .map((controller) => controller.text)
                                       .join();
                                   if (enteredCode == validCode.toString()) {
+
+                                    final prefs = await SharedPreferences.getInstance();
+                                    await prefs.setBool("mailVerify", true);
+
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

@@ -1,6 +1,7 @@
 import 'package:evgo_clone/screens/map_screen.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _CountryOption {
   const _CountryOption({
@@ -407,8 +408,15 @@ class _FormScreen extends State<FormScreen> {
                   child: ElevatedButton.icon(
                     icon: Icon(Icons.save_outlined, color: Colors.white),
                     onPressed: isValid
-                      ? () {
+                      ? () async {
                         // Логика на сохранение данных
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool("formComplete", true);
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => MapScreen())
+                        );
                       }
                       : null,
                     style: ElevatedButton.styleFrom(
@@ -433,12 +441,12 @@ class _FormScreen extends State<FormScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     // Действие при нажатии кнопки "Пропустить"
                     Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => MapScreen())
-                      );
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,

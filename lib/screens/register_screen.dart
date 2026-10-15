@@ -3,6 +3,7 @@ import 'package:evgo_clone/screens/verify_mail.dart';
 import 'package:evgo_clone/services/user_service.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AuthState {
   enterEmail,
@@ -187,11 +188,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 child: DecoratedBox(
                                   decoration: btnStyle(),
                                   child: ElevatedButton(
-                                    onPressed: () {
+                                    onPressed: () async {
                                       if (!_privacyAccepted) {
                                         setModalState(() => _privacyError = true);
                                         return;
                                       }
+                                      final prefs = await SharedPreferences.getInstance();
+                                      await prefs.setBool("isLoggedIn", true);
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -514,7 +517,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: DecoratedBox(
                               decoration: btnStyle(),
                               child: ElevatedButton.icon(
-                                onPressed: () {
+                                onPressed: () async {
                                   String? error = checkErrors();
                                   if (error != null){
                                     setState(() {
@@ -540,6 +543,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       // ДОБАВИТЬ ЛОГИКУ
                                       String pwd = textController.text;
                                       if (userService.passwordIsValid(email, pwd)){
+                                        final prefs = await SharedPreferences.getInstance();
+                                        await prefs.setBool("formComplete", true);
+                                        await prefs.setBool("isLoggedIn", true);
+                                        await prefs.setBool("mailVerify", true);
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(

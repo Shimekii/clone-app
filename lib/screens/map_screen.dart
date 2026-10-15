@@ -4,6 +4,7 @@ import 'package:evgo_clone/styles/connector_icon.dart';
 import 'package:evgo_clone/styles/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -768,7 +769,11 @@ class _MapScreenState extends State<MapScreen> {
                     Text(connector.type.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     Row(
                       children: [
-                        Icon(Icons.ev_station_outlined, size: 14),
+                        SvgPicture.asset(
+                          'assets/icons/plug-icon.svg',
+                          width: 18,
+                          height: 18,
+                        ),
                         Text("Pre-cabled", style: TextStyle(fontSize: 14))
                       ],
                     )
