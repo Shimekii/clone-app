@@ -388,26 +388,10 @@ class _FormScreen extends State<FormScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 40,
-                child: DecoratedBox(
-                  key: const ValueKey('save-button-container'),
-                  decoration: BoxDecoration(
-                    gradient: isValid
-                      ? const LinearGradient(
-                        colors: [
-                          Color(0xFF0093D9),
-                          Color(0xFF77B82A),
-                        ],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      )
-                      : const LinearGradient(
-                        colors: [Colors.grey, Colors.grey],
-                      ),
-                    borderRadius: BorderRadius.circular(25.0),
-                  ),
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.save_outlined, color: Colors.white),
-                    onPressed: isValid
+                child: greenButton(
+                  text: "Сохранить изменения",
+                  icon: Icons.save_outlined,
+                  onPressed: isValid
                       ? () async {
                         // Логика на сохранение данных
                         final prefs = await SharedPreferences.getInstance();
@@ -419,20 +403,8 @@ class _FormScreen extends State<FormScreen> {
                         );
                       }
                       : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    label: Text(
-                      "Сохранить изменения",
-                      style: TextStyle(color: Colors.white)
-                    ),
-                  ),
-                ),
+                  isActive: isValid
+                )
               ),
 
               SizedBox(height: 8),

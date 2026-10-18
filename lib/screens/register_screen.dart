@@ -150,6 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     'Условия использования и политика конфиденциальности',
                                     style: TextStyle(
                                       decoration: TextDecoration.underline,
+                                      color: Colors.blue
                                     ),
                                   ),
                                 ),
@@ -167,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 title: const Text(
                                   'Я ознакомился с Условиями предоставления услуг и '
                                   'Политикой конфиденциальности с согласен с ними',
-                                  style: TextStyle(fontSize: 14),
+                                  style: TextStyle(fontSize: 12),
                                 ),
                               ),
                               if (_privacyError)
@@ -185,10 +186,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               SizedBox(
                                 width: double.infinity,
                                 height: 40,
-                                child: DecoratedBox(
-                                  decoration: btnStyle(),
-                                  child: ElevatedButton(
-                                    onPressed: () async {
+                                child: greenButton(
+                                  text: "Продолжить",
+                                  icon: null,
+                                  onPressed: () async {
                                       if (!_privacyAccepted) {
                                         setModalState(() => _privacyError = true);
                                         return;
@@ -202,18 +203,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                               VerifyMailScreen(email: email),
                                         ),
                                       );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.white,
-                                      shadowColor: Colors.transparent,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(25),
-                                      ),
-                                    ),
-                                    child: const Text('Продолжить'),
+                                    }
                                   ),
-                                ),
+                                // child: DecoratedBox(
+                                //   decoration: btnStyle(),
+                                //   child: ElevatedButton(
+                                //     onPressed: () async {
+                                //       if (!_privacyAccepted) {
+                                //         setModalState(() => _privacyError = true);
+                                //         return;
+                                //       }
+                                //       final prefs = await SharedPreferences.getInstance();
+                                //       await prefs.setBool("isLoggedIn", true);
+                                //       Navigator.push(
+                                //         context,
+                                //         MaterialPageRoute(
+                                //           builder: (context) =>
+                                //               VerifyMailScreen(email: email),
+                                //         ),
+                                //       );
+                                //     },
+                                //     style: ElevatedButton.styleFrom(
+                                //       backgroundColor: Colors.transparent,
+                                //       foregroundColor: Colors.white,
+                                //       shadowColor: Colors.transparent,
+                                //       shape: RoundedRectangleBorder(
+                                //         borderRadius: BorderRadius.circular(25),
+                                //       ),
+                                //     ),
+                                //     child: const Text('Продолжить'),
+                                //   ),
+                                // ),
                               ),
                             ],
                           ),
@@ -514,10 +534,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           SizedBox(
                             width: double.infinity,
                             height: 40,
-                            child: DecoratedBox(
-                              decoration: btnStyle(),
-                              child: ElevatedButton.icon(
-                                onPressed: () async {
+                            child: greenButton(
+                              text: btnText,
+                              icon: btnIcon,
+                              onPressed: () async {
                                   String? error = checkErrors();
                                   if (error != null){
                                     setState(() {
@@ -568,22 +588,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       break;
                                   }
                                 },
-                                icon: Icon(btnIcon, color: Colors.white),
-                                label: Text(
-                                  btnText,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  shadowColor: Colors.transparent,
-                                  minimumSize: const Size(double.infinity, 40),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25.0),
-                                  ),
-                                ),
-                              ),
                             ),
+                            // child: DecoratedBox(
+                            //   decoration: btnStyle(),
+                            //   child: ElevatedButton.icon(
+                            //     onPressed: () async {
+                            //       String? error = checkErrors();
+                            //       if (error != null){
+                            //         setState(() {
+                            //           emailError = error;
+                            //         });
+                            //         return;
+                            //       }
+                            //       switch(state){
+                            //         case AuthState.enterEmail:
+                            //           email = textController.text;
+                            //           setState(() {
+                            //             emailError = null;
+                            //             textController.clear();
+                            //             obscurePassword = true;
+                            //             state = userService.emailIsContains(email)
+                            //               ? AuthState.login
+                            //               : AuthState.register;
+                            //           });
+                            //         case AuthState.login:
+                            //           // ДОБАВИТЬ ЛОГИКУ
+                            //           // ДОБАВИТЬ ЛОГИКУ
+                            //           // ДОБАВИТЬ ЛОГИКУ
+                            //           // ДОБАВИТЬ ЛОГИКУ
+                            //           String pwd = textController.text;
+                            //           if (userService.passwordIsValid(email, pwd)){
+                            //             final prefs = await SharedPreferences.getInstance();
+                            //             await prefs.setBool("formComplete", true);
+                            //             await prefs.setBool("isLoggedIn", true);
+                            //             await prefs.setBool("mailVerify", true);
+                            //             Navigator.pushReplacement(
+                            //               context,
+                            //               MaterialPageRoute(
+                            //                 builder: (context) => MapScreen()
+                            //               )
+                            //             );
+                            //           }
+                            //           else {
+                            //             setState(() {
+                            //               emailError = "Неверный пароль";
+                            //             });
+                            //           }
+                            //           break;
+                            //         case AuthState.register:
+                            //           setState(() {
+                            //             emailError = null;
+                            //           });
+                            //           _showPrivacyPolicy();
+                            //           break;
+                            //       }
+                            //     },
+                            //     icon: Icon(btnIcon, color: Colors.white),
+                            //     label: Text(
+                            //       btnText,
+                            //       style: const TextStyle(color: Colors.white),
+                            //     ),
+                            //     style: ElevatedButton.styleFrom(
+                            //       backgroundColor: Colors.transparent,
+                            //       foregroundColor: Colors.white,
+                            //       shadowColor: Colors.transparent,
+                            //       minimumSize: const Size(double.infinity, 40),
+                            //       shape: RoundedRectangleBorder(
+                            //         borderRadius: BorderRadius.circular(25.0),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                           ),
                         ],
                       ),

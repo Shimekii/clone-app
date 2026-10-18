@@ -48,6 +48,20 @@ class StationsDbMock {
     "Станция №5": Station("Станция №5", LatLng(56.4673, 84.9670), [
       Connector(ConnectorType.type2, 9, ConnectorStatus.avaliable),
     ]),
+    "Станция №6": Station("Станция №6", LatLng(56.4884, 84.9797), [
+      Connector(ConnectorType.type2, 10, ConnectorStatus.avaliable),
+      Connector(ConnectorType.type2, 11, ConnectorStatus.avaliable),
+      Connector(ConnectorType.type2, 12, ConnectorStatus.occupied),
+      Connector(ConnectorType.type2, 13, ConnectorStatus.avaliable),
+      Connector(ConnectorType.type2, 14, ConnectorStatus.occupied),
+    ]),
+    "Станция №7": Station("Станция №7", LatLng(56.4559, 84.9785), [
+      Connector(ConnectorType.type2, 15, ConnectorStatus.avaliable),
+      Connector(ConnectorType.ccs1, 16, ConnectorStatus.avaliable),
+      Connector(ConnectorType.ccs2, 17, ConnectorStatus.occupied),
+      Connector(ConnectorType.j1772, 18, ConnectorStatus.avaliable),
+      Connector(ConnectorType.tesla, 19, ConnectorStatus.occupied),
+    ]),
   };
 
   List<Station> stationsList() {

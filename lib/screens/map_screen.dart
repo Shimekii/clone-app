@@ -1,3 +1,4 @@
+import 'package:evgo_clone/screens/start_session_screen.dart';
 import 'package:evgo_clone/services/station_service.dart';
 import 'package:evgo_clone/styles/charging_marker.dart';
 import 'package:evgo_clone/styles/connector_icon.dart';
@@ -8,6 +9,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -107,17 +110,38 @@ class _MapScreenState extends State<MapScreen> {
                       Expanded(
                         child: Builder(
                           builder: (context) {
+                            final currentPosition = _userPosition;
                             final query = _searchController.text
                                 .trim()
                                 .toLowerCase();
-                            final filteredStations = stations
+
+                            var filteredStations = stations
                                 .where(
                                   (station) => station.name
                                       .toLowerCase()
                                       .contains(query),
                                 )
                                 .toList();
+                            
+                            if (currentPosition != null) {
+                              final sortStations = [...filteredStations]
+                                ..sort((a, b) {
+                                  final distA = const Distance().as(
+                                    LengthUnit.Meter,
+                                    currentPosition,
+                                    a.position
+                                  );
 
+                                  final distB = const Distance().as(
+                                    LengthUnit.Meter, 
+                                    currentPosition, 
+                                    b.position
+                                  );
+
+                                  return distA.compareTo(distB);
+                                });
+                              filteredStations = sortStations.take(5).toList();
+                            }
                             if (filteredStations.isEmpty) {
                               return const Center(
                                 child: Text('Станции не найдены'),
@@ -211,11 +235,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showStationDetails({
-    required String name,
-    required List<Connector> connectors,
-    required String distance,
+    required Station station
   }) {
-    var connectorsType = _stationService.getConnectorsType(name);
+    var connectorsType = _stationService.getConnectorsType(station.name);
     showModalBottomSheet(
       backgroundColor: Colors.white,
       context: context,
@@ -256,7 +278,7 @@ class _MapScreenState extends State<MapScreen> {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            name,
+                            station.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
@@ -327,10 +349,21 @@ class _MapScreenState extends State<MapScreen> {
                                         color: Colors.green,
                                       ),
                                       SizedBox(width: 4),
-                                      Text(distance),
+                                      Text(_distanceLabel(station)),
                                       Spacer(),
                                       TextButton.icon(
-                                        onPressed: () {},
+                                        onPressed: () async {
+                                          final latitude = station.position.latitude;
+                                          final longitude = station.position.longitude;
+                                          final uri = Uri.parse(
+                                            'https://2gis.ru/directions/points/|$longitude,$latitude',
+                                          );
+
+                                          await launchUrl(
+                                              uri,
+                                              mode: LaunchMode.platformDefault
+                                            );
+                                        },
                                         label: Text(
                                           "Проложить путь",
                                           style: TextStyle(color: Colors.blue),
@@ -361,34 +394,10 @@ class _MapScreenState extends State<MapScreen> {
                                 child: SizedBox(
                                   width: double.infinity,
                                   height: 40,
-                                  child: DecoratedBox(
-                                    decoration: btnStyle(),
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {},
-                                      label: Text(
-                                        "Просканировать",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                      icon: Icon(
-                                        Icons.qr_code,
-                                        color: Colors.white,
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        foregroundColor: Colors.white,
-                                        shadowColor: Colors.transparent,
-                                        minimumSize: const Size(
-                                          double.infinity,
-                                          40,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            25.0,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  child: greenButton(
+                                    text: "Просканировать",
+                                    icon: Icons.qr_code,
+                                    onPressed: (){})
                                 ),
                               ),
 
@@ -411,8 +420,8 @@ class _MapScreenState extends State<MapScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
                             children: [
-                              for (var connector in connectors) ... {
-                                _buildCardConnector(connector),
+                              for (var connector in station.connectors) ... {
+                                _buildCardConnector(station.name, connector),
                                 SizedBox(height: 8)
                               }
                             ],
@@ -499,11 +508,7 @@ class _MapScreenState extends State<MapScreen> {
                               availableSlots: _stationService
                                   .getAvailableConnectorCount(station),
                               totalSlots: station.connectors.length,
-                              onTap: () => _showStationDetails(
-                                name: station.name,
-                                connectors: station.connectors,
-                                distance: _distanceLabel(station),
-                              ),
+                              onTap: () => _showStationDetails(station: station),
                             ),
                           ),
                       ],
@@ -742,7 +747,7 @@ class _MapScreenState extends State<MapScreen> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  DecoratedBox _buildCardConnector(Connector connector){
+  DecoratedBox _buildCardConnector(String stationName, Connector connector){
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Color(0xFFF3F7E9),
@@ -797,10 +802,12 @@ class _MapScreenState extends State<MapScreen> {
                 Spacer(),
                 TextButton(
                   onPressed: () {
-                    // ДОБАВИТЬ ЛОГИКУ
-                    // ДОБАВИТЬ ЛОГИКУ
-                    // ДОБАВИТЬ ЛОГИКУ
-                    // ДОБАВИТЬ ЛОГИКУ
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StartSessionScreen(stationName: stationName, connector: connector)
+                      )
+                    );
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -817,26 +824,11 @@ class _MapScreenState extends State<MapScreen> {
             ),
 
             if (connector.status == ConnectorStatus.occupied)...{
-              Text(_renderLabel(connector.useTime), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
+              Text(renderLabel(connector.useTime), style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
             }
           ],
         ),
       )
     );
-  }
-
-  String _renderLabel(int seconds){
-    int hour = seconds ~/ 3600;
-    int minutes = (seconds % 3600) ~/ 60;
-    int sec = seconds % 60;
-    if (hour != 0){
-      return "Запущено $hour ч. $minutes мин. $sec сек. назад";
-    }
-    else if (minutes != 0){
-      return "Запущено $minutes мин. $sec сек. назад";
-    }
-    else {
-      return "Запущено $sec сек. назад";
-    }
   }
 }
