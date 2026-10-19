@@ -1,12 +1,15 @@
+import 'package:evgo_clone/services/station_service.dart';
 import 'package:flutter/material.dart';
 
 class SessionSummaryScreen extends StatefulWidget {
   final String stationName;
   final int connectorNumber;
+  final int duration;
   const SessionSummaryScreen({
     super.key,
     required this.stationName,
     required this.connectorNumber,
+    required this.duration,
   });
 
   @override
@@ -15,14 +18,19 @@ class SessionSummaryScreen extends StatefulWidget {
 
 class _SessionSummaryScreen extends State<SessionSummaryScreen> {
 
-  String _dateLabel(){
-    final now = DateTime.now();
-    final minute = now.minute.toString();
-    final hour = now.hour.toString();
-    final day = now.day.toString();
-    final month = now.month.toString();
-    final year = now.year.toString();
-    return "$hour:$minute $day/$month/$year";
+  String _dateLabel(DateTime? startSession){
+    
+    if (startSession != null){
+      final minute = startSession.minute >= 10 ? startSession.minute.toString() : "0${startSession.minute}";
+      final hour = startSession.hour >= 10 ? startSession.hour.toString() : "0${startSession.hour}";
+      final day = startSession.day >= 10 ? startSession.day.toString() : "0${startSession.day}";
+      final month = startSession.month >= 10 ? startSession.month.toString() : "0${startSession.month}";
+      final year = startSession.year.toString();
+      return "$hour:$minute $day/$month/$year";
+    } else {
+      return "-";
+    }
+    
   }
 
   Row columnLineText(String leftText, String rightText) {
@@ -98,6 +106,8 @@ class _SessionSummaryScreen extends State<SessionSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final duration = widget.duration.toString();
+    final stationService = StationService.instance;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -163,8 +173,8 @@ class _SessionSummaryScreen extends State<SessionSummaryScreen> {
                   padding: EdgeInsets.all(12.0),
                   child: Column(
                     children: [
-                      columnLineText("Начало", _dateLabel()),
-                      columnLineText("Длительность сессии", "0 сек."),
+                      columnLineText("Начало", _dateLabel(stationService.getConnectorByNumber(widget.connectorNumber)?.start)),
+                      columnLineText("Длительность сессии", "$duration сек."),
                       columnLineText("Ожидание", "0 сек.")
                     ],
                   ),

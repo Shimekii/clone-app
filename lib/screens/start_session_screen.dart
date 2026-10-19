@@ -130,6 +130,7 @@ class _StartSessionScreen extends State<StartSessionScreen> {
                 icon: Icons.power_settings_new_rounded,
                 onPressed: () {
                   if (connector.status == ConnectorStatus.avaliable) {
+                    connector.startCharge();
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => ChargeScreen(stationName: stationName, connectorNumber: connector.number))

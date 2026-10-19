@@ -317,9 +317,11 @@ class _FormScreen extends State<FormScreen> {
                   IconButton(
                     onPressed: () {
                       // Добавить логику
-                      Navigator.pushReplacement(
+                      Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => MapScreen())
+                        MaterialPageRoute(builder: (context) => MapScreen(),
+                        ),
+                        (route) => false
                       );
                     },
                     icon: const Icon(Icons.close, size: 24),
@@ -397,9 +399,11 @@ class _FormScreen extends State<FormScreen> {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setBool("formComplete", true);
 
-                        Navigator.pushReplacement(
+                        Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (context) => MapScreen())
+                          MaterialPageRoute(builder: (context) => MapScreen(),
+                          ),
+                          (route) => false
                         );
                       }
                       : null,
@@ -415,9 +419,11 @@ class _FormScreen extends State<FormScreen> {
                 child: ElevatedButton(
                   onPressed: () async {
                     // Действие при нажатии кнопки "Пропустить"
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => MapScreen())
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => MapScreen(),
+                      ),
+                      (route) => false
                     );
                   },
                   style: ElevatedButton.styleFrom(

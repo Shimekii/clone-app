@@ -85,9 +85,11 @@ class _VerifyMailScreen extends State<VerifyMailScreen> {
                   IconButton(
                     onPressed: () {
                       // Добавить логику
-                      Navigator.pushReplacement(
+                      Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => MapScreen())
+                        MaterialPageRoute(builder: (context) => MapScreen(),
+                        ),
+                        (route) => false
                       );
                     },
                     icon: const Icon(Icons.close, size: 24),

@@ -1,7 +1,13 @@
 import 'package:latlong2/latlong.dart';
 
 class StationService {
+  StationService._();
+  static final StationService instance = StationService._();
   final StationsDbMock _db = StationsDbMock();
+
+  Connector? getConnectorByNumber(int number){
+    return _db.findConnector(number);
+  }
 
   List<Station> getStations() {
     return _db.stationsList();
@@ -64,6 +70,16 @@ class StationsDbMock {
     ]),
   };
 
+  late final Map<int, Connector> connectors = {
+    for (final station in stations.values)
+      for (final connector in station.connectors)
+        connector.number: connector,
+  };
+
+  Connector? findConnector(int number){
+    return connectors[number];
+  }
+
   List<Station> stationsList() {
     return stations.values.toList();
   }
@@ -86,19 +102,24 @@ class Connector {
   final int number;
   ConnectorStatus status;
   Connector(this.type, this.number, this.status);
-  final Stopwatch _stopwatch = Stopwatch();
-  int useTime = 2985;
+  // final Stopwatch _stopwatch = Stopwatch();
+  int useTime = 2985; // заглушка
+  DateTime? start;
+  DateTime? end;
   // int get useTime => _stopwatch.elapsed.inSeconds;
 
   void startCharge(){
-    _stopwatch.start();
+    // _stopwatch.start();
     status = ConnectorStatus.occupied;
+    start = DateTime.now();
   }
 
   void stopCharge(){
-    _stopwatch.stop();
+    // _stopwatch.stop();
     status = ConnectorStatus.avaliable;
+    end = DateTime.now();
   }
+
 }
 
 enum ConnectorStatus { avaliable, occupied }

@@ -567,11 +567,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         await prefs.setBool("formComplete", true);
                                         await prefs.setBool("isLoggedIn", true);
                                         await prefs.setBool("mailVerify", true);
-                                        Navigator.pushReplacement(
+                                        Navigator.pushAndRemoveUntil(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => MapScreen()
-                                          )
+                                          ), (route) => false,
                                         );
                                       }
                                       else {

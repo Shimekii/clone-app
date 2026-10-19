@@ -9,7 +9,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MapScreen extends StatefulWidget {
@@ -22,7 +21,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
   static const LatLng defaultPosition = LatLng(56.4761, 84.9657);
-  final StationService _stationService = StationService();
+  final StationService _stationService = StationService.instance;
   bool _mapReady = false;
   bool _locating = false;
   bool _initializingMap = true;

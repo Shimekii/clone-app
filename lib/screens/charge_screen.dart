@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:evgo_clone/screens/session_summary_screen.dart';
@@ -17,6 +19,26 @@ class ChargeScreen extends StatefulWidget {
 
 class _ChargeScreen extends State<ChargeScreen> {
   double _sliderProgress = 0;
+  late final DateTime _startedAt;
+  late final Timer _durationTimer;
+  int _elapsedSeconds = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startedAt = DateTime.now();
+    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() {
+        _elapsedSeconds = DateTime.now().difference(_startedAt).inSeconds;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _durationTimer.cancel();
+    super.dispose();
+  }
 
   Widget _buildBottomAction({
     required IconData? icon,
@@ -147,7 +169,7 @@ class _ChargeScreen extends State<ChargeScreen> {
                     children: [
                       columnLineText("Текущая мощность зарядки", "0.00 kW"),
                       columnLineText("Энергия", "0.00 kWh"),
-                      columnLineText("Длительность", "0 сек."),
+                      columnLineText("Длительность", "$_elapsedSeconds сек."),
                       columnLineText("Количество", "-"),
                     ],
                   ),
@@ -205,13 +227,17 @@ class _ChargeScreen extends State<ChargeScreen> {
                         },
                         onHorizontalDragEnd: (_) {
                           if (_sliderProgress >= 1) {
-                            Navigator.of(context).push(
+                            _durationTimer.cancel();
+
+                            Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (context) => SessionSummaryScreen(
                                   stationName: widget.stationName,
                                   connectorNumber: widget.connectorNumber,
+                                  duration: _elapsedSeconds,
                                 ),
                               ),
+                              (route) => route.isFirst
                             );
                           } else {
                             setState(() => _sliderProgress = 0);
