@@ -27,7 +27,7 @@ BoxDecoration btnStyle(bool isActive){
   }
 
 // зеленая кнопка в приложении
-DecoratedBox greenButton({required String text, required IconData? icon, required VoidCallback? onPressed, bool isActive = true}){
+DecoratedBox greenButton({required String text, IconData? icon, required VoidCallback? onPressed, bool isActive = true}){
   return DecoratedBox(
     decoration: btnStyle(isActive),
     child: ElevatedButton.icon(
